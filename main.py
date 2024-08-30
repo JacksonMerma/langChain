@@ -1,16 +1,16 @@
-from langchain_community.chat_models.ollama import ChatOllama
-from langchain.prompts import PromptTemplate
+import langchain_helper as lch
+import streamlit as st
 
-def generate_pet_name(animal_type, pet_color):
-    llm = ChatOllama(model="codellama", temperature=0.7)
+st.title("Pets name generator")
+pets = ["Cat", "Dog", "Cow", "Hamster"]
 
-    # Defining prompt template
-    prompt_template_name = PromptTemplate.from_template(
-        "I have a {animal_type} pet and I want a cool name for it, it is {pet_color} in color. Suggest me five cool names for my pet."
-    )
-    chain = prompt_template_name | llm
-    response = chain.invoke({"animal_type": animal_type, "pet_color": pet_color})
-    return response
+animal_type = st.sidebar.selectbox("What is your pet?", pets)
 
-if __name__ == "__main__":
-    print(generate_pet_name("cat", "black"))
+for pet in pets:
+    if animal_type == pet:
+        pet_color = st.sidebar.text_area(label=f"What color is your {pet}?", max_chars=15)
+
+if pet_color:
+    response = lch.generate_pet_name(animal_type=animal_type, pet_color=pet_color)
+    st.text(response["pet_names"])
+
