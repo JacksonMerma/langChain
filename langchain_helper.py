@@ -1,38 +1,21 @@
+from langchain_community.document_loaders import YoutubeLoader
+from langchain. text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.chat_models.ollama import ChatOllama
 from langchain.prompts import PromptTemplate
-#from langchain.output_parsers import XMLOutputParser
-#from typing_extensions import TypedDict, Annotated
-from langchain.agents import load_tools, initialize_agent, AgentType
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import OllamaEmbeddings
 
-"""
-class Answer(TypedDict):
-    names: Annotated[str, ..., "Pet names"]
-"""
+embeddings = OllamaEmbeddings(model="gemma:2b")
+video_url = "https://www.youtube.com/watch?v=yXpgqAWWUrs"
 
-def generate_pet_name(animal_type, pet_color):
-    llm = ChatOllama(model="codellama", temperature=0.7)
-    #structured_llm = llm.with_structured_output(Answer)
+def create_vector_db_from_youtube_url(video_url: str) -> FAISS:
+    loader = YoutubeLoader.from_youtube_url(video_url)
+    transcript = loader.load()
 
-    # Defining prompt template
-    prompt_template_name = PromptTemplate.from_template(
-        "I have a {animal_type} pet and I want a cool name for it, it is {pet_color} in color. Suggest me five cool names for my pet."
-    )
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    docs = text_splitter.split_documents(transcript)
 
-    #chain = prompt_template_name | structured_llm
-    chain = prompt_template_name | llm
-    response = chain.invoke({"animal_type": animal_type, "pet_color": pet_color})
-    return response
+    db = FAISS.from_documents(docs, embeddings)
+    return docs
 
-def langchain_agent():
-    llm = ChatOllama(model="codellama", temperature=0.5)
-    tools = load_tools(["wikipedia", "llm-math"], llm=llm)
-    agent = initialize_agent(
-        tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
-    )
-    result = agent.run(
-        "What is the average age of a dog? Multiply the age by 3"
-    )
-    print(result)
-
-if __name__ == "__main__":
-    langchain_agent()
+print(create_vector_db_from_youtube_url(video_url))
