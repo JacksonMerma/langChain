@@ -12,5 +12,5 @@ for pet in pets:
 
 if pet_color:
     response = lch.generate_pet_name(animal_type=animal_type, pet_color=pet_color)
-    st.text(response["pet_names"])
+    st.text(response.content)
 
