@@ -4,13 +4,13 @@ from langchain_community.chat_models.ollama import ChatOllama
 from langchain.prompts import PromptTemplate
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import OllamaEmbeddings
-from langchain_community.ollama.llms import Ollama
+#from langchain_ollama.llms import OllamaLLM
 
 embeddings = OllamaEmbeddings(model="gemma:2b")
-video_url = "https://www.youtube.com/watch?v=yXpgqAWWUrs"
+#video_url = "https://www.youtube.com/watch?v=yXpgqAWWUrs"
 
 def create_vector_db_from_youtube_url(video_url: str) -> FAISS:
-    loader = YoutubeLoader.from_youtube_url(video_url)
+    loader = YoutubeLoader.from_youtube_url(video_url, language=["es"])
     transcript = loader.load()
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
@@ -24,10 +24,10 @@ def get_response_from_query(db, query, k=4):
     docs = db.similarity_search(query, k=k)
     docs_page_content = "".join([d.page_content for d in docs])
 
-    llm = Ollama(model="gemma:2b")
+    llm = ChatOllama(model="gemma:2b")
 
     prompt = PromptTemplate(
-            input_variables=["question", "docs"]
+            input_variables=["question", "docs"],
             template="""
             You are a helpful YouTube assistant that can answer questions about videos based on the video's transcript.
             Answer the following question: {question}
@@ -38,9 +38,5 @@ def get_response_from_query(db, query, k=4):
             """
             )
     chain = prompt | llm
-    response = chain.run(question=query, docs=docs_page_content)
-    response = response.replace("\n", "")
-    return response
-            
-
-print(create_vector_db_from_youtube_url(video_url))
+    response = chain.invoke({"question":query, "docs":docs_page_content})
+    return response, docs
