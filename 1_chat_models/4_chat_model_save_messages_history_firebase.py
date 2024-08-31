@@ -20,3 +20,19 @@ chat_history = FirestoreChatMessageHistory(
         )
 print("Chat history initialized.")
 print(f"Current Chat History: {chat_history.messages}")
+
+# Defining model
+model = ChatOllama(model="gemma:2b", temperature=0.5)
+print("Start chatting with the AI. Type 'exit' to quit.")
+
+while True:
+    human_input = input("User: ")
+    if human_input.lower() == "exit":
+        break
+
+    chat_history.add_user_message(human_input)
+
+    ai_response = model.invoke(chat_history.messages)
+    chat_history.add_ai_message(ai_response.content)
+
+    print(f"Gemma: {ai_response.content}")
