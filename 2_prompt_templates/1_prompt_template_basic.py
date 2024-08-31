@@ -13,3 +13,12 @@ Human: Tell me a {adjetive} story about a {animal}.
 Assistant:"""
 prompt_multiple = ChatPromptTemplate.from_template(template_multiple)
 prompt = prompt_multiple.invoke({"adjetive": "funny", "animal": "dog"})
+
+# Template with system and human messages using tuples
+messages = [
+        ("system", "You are a comedian who tells jokes about {topic}."),
+        ("human", "Tell me {joke_count} jokes.")
+        ]
+prompt_template = ChatPromptTemplate.from_messages(messages)
+prompt = prompt_template.invoke({"topic": "programmers", "joke_count": 4})
+print(prompt)
